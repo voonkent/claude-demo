@@ -1,0 +1,26 @@
+# Gradle
+build/
+.gradle/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+
+# Compiled files
+*.class
+*.jar
+*.war
+
+# Environment
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+.claude/settings.local.json

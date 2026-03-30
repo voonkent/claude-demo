@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Task Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            background-color: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #1a1a2e;
+            color: #fff;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+        }
+
+        .board {
+            display: flex;
+            gap: 1.5rem;
+            padding: 2rem;
+            max-width: 1280px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 0;
+            background-color: #e8eaed;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .column-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.25rem;
+        }
+
+        .column-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .column-count {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            color: #fff;
+        }
+
+        .column[data-status="TODO"] .column-title { color: #5b6abf; }
+        .column[data-status="TODO"] .column-count { background-color: #5b6abf; }
+
+        .column[data-status="IN_PROGRESS"] .column-title { color: #d97706; }
+        .column[data-status="IN_PROGRESS"] .column-count { background-color: #d97706; }
+
+        .column[data-status="DONE"] .column-title { color: #16a34a; }
+        .column[data-status="DONE"] .column-count { background-color: #16a34a; }
+
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.15s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .card-description {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-bottom: 0.65rem;
+            line-height: 1.4;
+        }
+
+        .card-meta {
+            font-size: 0.7rem;
+            color: #9ca3af;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #9ca3af;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Task Dashboard</h1>
+        <span class="badge" th:text="'Total: ' + ${totalCount} + ' tasks'">Total: 0 tasks</span>
+    </header>
+    <div class="board">
+        <div class="column" th:each="col : ${columns}" th:attr="data-status=${col.status}">
+            <div class="column-header">
+                <span class="column-title" th:text="${col.status.name() == 'IN_PROGRESS' ? 'In Progress' : (col.status.name() == 'TODO' ? 'To Do' : 'Done')}">Status</span>
+                <span class="column-count" th:text="${col.count}">0</span>
+            </div>
+            <div th:if="${col.count == 0}" class="empty-state">No tasks</div>
+            <div class="card" th:each="task : ${col.tasks}">
+                <div class="card-title" th:text="${task.title}">Task title</div>
+                <div class="card-description" th:if="${task.description != null}" th:text="${task.description}">Description</div>
+                <div class="card-meta" th:text="'Created ' + ${#temporals.format(task.createdAt, 'MMM d, yyyy HH:mm')}">Created date</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
