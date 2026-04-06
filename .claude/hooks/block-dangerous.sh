@@ -15,7 +15,6 @@ BLOCKED_PATTERNS=(
   "DROP TABLE"
   "DROP DATABASE"
   "TRUNCATE"
-  "curl.*|.*sh"
   "docker rm -f"
   "kubectl delete"
   "flyway clean"
