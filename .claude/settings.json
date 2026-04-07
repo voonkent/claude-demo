@@ -1,4 +1,13 @@
 {
+  "permissions": {
+    "deny": [
+      "Read(**/.env*)",
+      "Edit(**/.env*)",
+      "MultiEdit(**/.env*)",
+      "Write(**/.env*)",
+      "Bash(**/.env*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -7,6 +16,11 @@
           {
             "type": "command",
             "command": ".claude/hooks/block-dangerous.sh"
+          }
+          ,
+          {
+            "type": "command",
+            "command": ".claude/hooks/run-tests.sh"
           }
         ]
       }
