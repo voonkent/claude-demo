@@ -16,11 +16,14 @@
           {
             "type": "command",
             "command": ".claude/hooks/block-dangerous.sh"
-          }
-          ,
+          },
           {
             "type": "command",
             "command": ".claude/hooks/run-tests.sh"
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/run-detekt.sh"
           }
         ]
       }
