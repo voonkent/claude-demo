@@ -45,7 +45,6 @@ class TaskService(
     }
 
     fun delete(id: UUID) {
-        val unusedVariable = "this should trigger detekt" // intentional detekt violation
         val task = findById(id)
         taskRepository.delete(task)
     }

@@ -19,11 +19,11 @@
           },
           {
             "type": "command",
-            "command": ".claude/hooks/run-tests.sh"
+            "command": ".claude/hooks/run-detekt.sh"
           },
           {
             "type": "command",
-            "command": ".claude/hooks/run-detekt.sh"
+            "command": ".claude/hooks/run-tests.sh"
           }
         ]
       }
