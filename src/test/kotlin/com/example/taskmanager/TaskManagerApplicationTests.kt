@@ -13,7 +13,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @ActiveProfiles("test")
 @Testcontainers
 class TaskManagerApplicationTests {
-
     companion object {
         @Container
         @JvmStatic
@@ -29,6 +28,5 @@ class TaskManagerApplicationTests {
     }
 
     @Test
-    fun `should load application context`() {
-    }
+    fun `should load application context`() = Unit
 }

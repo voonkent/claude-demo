@@ -11,25 +11,32 @@ import java.util.UUID
 
 @Service
 @Transactional
-class TaskService(private val taskRepository: TaskRepository) {
-
+class TaskService(
+    private val taskRepository: TaskRepository,
+) {
     @Transactional(readOnly = true)
     fun findAll(): List<Task> = taskRepository.findAll()
 
     @Transactional(readOnly = true)
-    fun findById(id: UUID): Task = taskRepository.findById(id)
-        .orElseThrow { TaskNotFoundException(id) }
+    fun findById(id: UUID): Task =
+        taskRepository
+            .findById(id)
+            .orElseThrow { TaskNotFoundException(id) }
 
     fun create(request: CreateTaskRequest): Task {
-        val task = Task(
-            title = request.title,
-            description = request.description,
-            status = request.status
-        )
+        val task =
+            Task(
+                title = request.title,
+                description = request.description,
+                status = request.status,
+            )
         return taskRepository.save(task)
     }
 
-    fun update(id: UUID, request: UpdateTaskRequest): Task {
+    fun update(
+        id: UUID,
+        request: UpdateTaskRequest,
+    ): Task {
         val task = findById(id)
         task.title = request.title
         task.description = request.description
