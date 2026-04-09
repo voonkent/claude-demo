@@ -122,6 +122,7 @@ class TaskServiceTest {
 
         val result = taskService.create(request)
 
+        assertThat(taskSlot.captured.priority).isEqualTo(TaskPriority.HIGH)
         assertThat(result.priority).isEqualTo(TaskPriority.HIGH)
         verify { taskRepository.save(any()) }
     }
@@ -155,6 +156,23 @@ class TaskServiceTest {
         val result = taskService.update(taskId, request)
 
         assertThat(result.priority).isEqualTo(TaskPriority.LOW)
+        verify { taskRepository.findById(taskId) }
+        verify { taskRepository.save(any()) }
+    }
+
+    @Test
+    fun `should clear task priority when updated with null priority`() {
+        val existing = createTask(priority = TaskPriority.HIGH)
+        val request = UpdateTaskRequest(title = "Updated", status = TaskStatus.TODO, priority = null)
+        every { taskRepository.findById(taskId) } returns Optional.of(existing)
+        every { taskRepository.save(any()) } answers {
+            createTask(title = "Updated", priority = null)
+        }
+
+        val result = taskService.update(taskId, request)
+
+        assertThat(result.priority).isNull()
+        verify { taskRepository.findById(taskId) }
         verify { taskRepository.save(any()) }
     }
 
