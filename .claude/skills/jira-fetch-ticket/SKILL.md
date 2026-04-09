@@ -1,6 +1,7 @@
 ---
 name: jira-fetch-ticket
 description: Fetch Jira ticket details or search tickets by JQL. Use when the user wants to look up a Jira issue, check ticket status, or search for tickets.
+disable-model-invocation: true
 ---
 
 Fetch a Jira Cloud ticket by key or search tickets via JQL query.
