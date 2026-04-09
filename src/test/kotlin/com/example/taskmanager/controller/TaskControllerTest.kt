@@ -3,6 +3,7 @@ package com.example.taskmanager.controller
 import com.example.taskmanager.controller.dto.CreateTaskRequest
 import com.example.taskmanager.controller.dto.UpdateTaskRequest
 import com.example.taskmanager.domain.Task
+import com.example.taskmanager.domain.TaskPriority
 import com.example.taskmanager.domain.TaskStatus
 import com.example.taskmanager.exception.GlobalExceptionHandler
 import com.example.taskmanager.exception.TaskNotFoundException
@@ -29,7 +30,6 @@ import java.util.UUID
 @WebMvcTest(TaskController::class)
 @Import(GlobalExceptionHandler::class)
 class TaskControllerTest {
-
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -46,32 +46,56 @@ class TaskControllerTest {
         id: UUID = taskId,
         title: String = "Test Task",
         description: String? = "Description",
-        status: TaskStatus = TaskStatus.TODO
-    ): Task = Task(
-        id = id,
-        title = title,
-        description = description,
-        status = status,
-        createdAt = now,
-        updatedAt = now
-    )
+        status: TaskStatus = TaskStatus.TODO,
+        priority: TaskPriority? = null,
+    ): Task =
+        Task(
+            id = id,
+            title = title,
+            description = description,
+            status = status,
+            priority = priority,
+            createdAt = now,
+            updatedAt = now,
+        )
 
     @Test
     fun `should return all tasks`() {
         val tasks = listOf(createTask(), createTask(id = UUID.randomUUID(), title = "Task 2"))
-        every { taskService.findAll() } returns tasks
+        every { taskService.findAll(null) } returns tasks
 
-        mockMvc.perform(get("/api/tasks"))
+        mockMvc
+            .perform(get("/api/tasks"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(2))
             .andExpect(jsonPath("$[0].title").value("Test Task"))
     }
 
     @Test
+    fun `should return tasks filtered by priority`() {
+        val highTask = createTask(priority = TaskPriority.HIGH)
+        every { taskService.findAll(TaskPriority.HIGH) } returns listOf(highTask)
+
+        mockMvc
+            .perform(get("/api/tasks").param("priority", "HIGH"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].priority").value("HIGH"))
+    }
+
+    @Test
+    fun `should return 400 for invalid priority value`() {
+        mockMvc
+            .perform(get("/api/tasks").param("priority", "URGENT"))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
     fun `should return task by id`() {
         every { taskService.findById(taskId) } returns createTask()
 
-        mockMvc.perform(get("/api/tasks/$taskId"))
+        mockMvc
+            .perform(get("/api/tasks/$taskId"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.id").value(taskId.toString()))
             .andExpect(jsonPath("$.title").value("Test Task"))
@@ -82,7 +106,8 @@ class TaskControllerTest {
     fun `should return 404 when task not found`() {
         every { taskService.findById(taskId) } throws TaskNotFoundException(taskId)
 
-        mockMvc.perform(get("/api/tasks/$taskId"))
+        mockMvc
+            .perform(get("/api/tasks/$taskId"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.error").value("Not Found"))
     }
@@ -92,30 +117,31 @@ class TaskControllerTest {
         val request = CreateTaskRequest(title = "New Task", description = "Desc", status = TaskStatus.TODO)
         every { taskService.create(any()) } returns createTask(title = "New Task", description = "Desc")
 
-        mockMvc.perform(
-            post("/api/tasks")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isCreated)
+        mockMvc
+            .perform(
+                post("/api/tasks")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isCreated)
             .andExpect(jsonPath("$.title").value("New Task"))
     }
 
     @Test
     fun `should update task`() {
         val request = UpdateTaskRequest(title = "Updated", description = "Updated Desc", status = TaskStatus.DONE)
-        every { taskService.update(taskId, any()) } returns createTask(
-            title = "Updated",
-            description = "Updated Desc",
-            status = TaskStatus.DONE
-        )
+        every { taskService.update(taskId, any()) } returns
+            createTask(
+                title = "Updated",
+                description = "Updated Desc",
+                status = TaskStatus.DONE,
+            )
 
-        mockMvc.perform(
-            put("/api/tasks/$taskId")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isOk)
+        mockMvc
+            .perform(
+                put("/api/tasks/$taskId")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isOk)
             .andExpect(jsonPath("$.title").value("Updated"))
             .andExpect(jsonPath("$.status").value("DONE"))
     }
@@ -124,7 +150,8 @@ class TaskControllerTest {
     fun `should delete task and return 204`() {
         every { taskService.delete(taskId) } returns Unit
 
-        mockMvc.perform(delete("/api/tasks/$taskId"))
+        mockMvc
+            .perform(delete("/api/tasks/$taskId"))
             .andExpect(status().isNoContent)
 
         verify { taskService.delete(taskId) }
@@ -134,12 +161,12 @@ class TaskControllerTest {
     fun `should return 400 for invalid create request`() {
         val invalidRequest = mapOf("title" to "", "status" to "TODO")
 
-        mockMvc.perform(
-            post("/api/tasks")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest))
-        )
-            .andExpect(status().isBadRequest)
+        mockMvc
+            .perform(
+                post("/api/tasks")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalidRequest)),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Validation Failed"))
     }
 
@@ -147,12 +174,12 @@ class TaskControllerTest {
     fun `should return 400 for invalid update request`() {
         val invalidRequest = mapOf("title" to "", "status" to "TODO")
 
-        mockMvc.perform(
-            put("/api/tasks/$taskId")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest))
-        )
-            .andExpect(status().isBadRequest)
+        mockMvc
+            .perform(
+                put("/api/tasks/$taskId")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalidRequest)),
+            ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.error").value("Validation Failed"))
     }
 }
