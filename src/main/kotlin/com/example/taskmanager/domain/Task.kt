@@ -18,7 +18,6 @@ import java.util.UUID
 @Entity
 @Table(name = "tasks")
 @EntityListeners(AuditingEntityListener::class)
-@Suppress("LongParameterList")
 class Task(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
