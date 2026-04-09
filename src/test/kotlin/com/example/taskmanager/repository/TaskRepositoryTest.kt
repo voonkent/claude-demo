@@ -1,6 +1,7 @@
 package com.example.taskmanager.repository
 
 import com.example.taskmanager.domain.Task
+import com.example.taskmanager.domain.TaskPriority
 import com.example.taskmanager.domain.TaskStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -19,7 +20,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @ActiveProfiles("test")
 @Testcontainers
 class TaskRepositoryTest {
-
     companion object {
         @Container
         @ServiceConnection
@@ -96,5 +96,18 @@ class TaskRepositoryTest {
 
         assertThat(updated.title).isEqualTo("Updated")
         assertThat(updated.status).isEqualTo(TaskStatus.DONE)
+    }
+
+    @Test
+    fun `should find tasks by priority`() {
+        taskRepository.save(Task(title = "Low Task", priority = TaskPriority.LOW))
+        taskRepository.save(Task(title = "High Task 1", priority = TaskPriority.HIGH))
+        taskRepository.save(Task(title = "High Task 2", priority = TaskPriority.HIGH))
+        taskRepository.save(Task(title = "No Priority Task", priority = null))
+
+        val result = taskRepository.findByPriority(TaskPriority.HIGH)
+
+        assertThat(result).hasSize(2)
+        assertThat(result.map { it.title }).containsExactlyInAnyOrder("High Task 1", "High Task 2")
     }
 }

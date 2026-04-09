@@ -61,6 +61,11 @@ jacoco {
     toolVersion = "0.8.12"
 }
 
+detekt {
+    config.from(files("config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
+}
+
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {

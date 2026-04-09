@@ -3,6 +3,7 @@ package com.example.taskmanager.service
 import com.example.taskmanager.controller.dto.CreateTaskRequest
 import com.example.taskmanager.controller.dto.UpdateTaskRequest
 import com.example.taskmanager.domain.Task
+import com.example.taskmanager.domain.TaskPriority
 import com.example.taskmanager.exception.TaskNotFoundException
 import com.example.taskmanager.repository.TaskRepository
 import org.springframework.stereotype.Service
@@ -15,7 +16,12 @@ class TaskService(
     private val taskRepository: TaskRepository,
 ) {
     @Transactional(readOnly = true)
-    fun findAll(): List<Task> = taskRepository.findAll()
+    fun findAll(priority: TaskPriority? = null): List<Task> =
+        if (priority != null) {
+            taskRepository.findByPriority(priority)
+        } else {
+            taskRepository.findAll()
+        }
 
     @Transactional(readOnly = true)
     fun findById(id: UUID): Task =
@@ -29,6 +35,7 @@ class TaskService(
                 title = request.title,
                 description = request.description,
                 status = request.status,
+                priority = request.priority,
             )
         return taskRepository.save(task)
     }
@@ -41,6 +48,7 @@ class TaskService(
         task.title = request.title
         task.description = request.description
         task.status = request.status
+        task.priority = request.priority
         return taskRepository.save(task)
     }
 

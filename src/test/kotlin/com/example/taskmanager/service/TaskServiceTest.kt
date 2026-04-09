@@ -3,6 +3,7 @@ package com.example.taskmanager.service
 import com.example.taskmanager.controller.dto.CreateTaskRequest
 import com.example.taskmanager.controller.dto.UpdateTaskRequest
 import com.example.taskmanager.domain.Task
+import com.example.taskmanager.domain.TaskPriority
 import com.example.taskmanager.domain.TaskStatus
 import com.example.taskmanager.exception.TaskNotFoundException
 import com.example.taskmanager.repository.TaskRepository
@@ -20,7 +21,6 @@ import java.util.Optional
 import java.util.UUID
 
 class TaskServiceTest {
-
     @MockK
     lateinit var taskRepository: TaskRepository
 
@@ -33,15 +33,18 @@ class TaskServiceTest {
         id: UUID = taskId,
         title: String = "Test Task",
         description: String? = "Description",
-        status: TaskStatus = TaskStatus.TODO
-    ): Task = Task(
-        id = id,
-        title = title,
-        description = description,
-        status = status,
-        createdAt = now,
-        updatedAt = now
-    )
+        status: TaskStatus = TaskStatus.TODO,
+        priority: TaskPriority? = null,
+    ): Task =
+        Task(
+            id = id,
+            title = title,
+            description = description,
+            status = status,
+            priority = priority,
+            createdAt = now,
+            updatedAt = now,
+        )
 
     @BeforeEach
     fun setUp() {
@@ -54,7 +57,7 @@ class TaskServiceTest {
         val tasks = listOf(createTask(), createTask(id = UUID.randomUUID(), title = "Task 2"))
         every { taskRepository.findAll() } returns tasks
 
-        val result = taskService.findAll()
+        val result = taskService.findAll(null)
 
         assertThat(result).hasSize(2)
         verify { taskRepository.findAll() }
@@ -80,6 +83,18 @@ class TaskServiceTest {
     }
 
     @Test
+    fun `should return tasks filtered by priority`() {
+        val highTask = createTask(priority = TaskPriority.HIGH)
+        every { taskRepository.findByPriority(TaskPriority.HIGH) } returns listOf(highTask)
+
+        val result = taskService.findAll(TaskPriority.HIGH)
+
+        assertThat(result).hasSize(1)
+        assertThat(result[0].priority).isEqualTo(TaskPriority.HIGH)
+        verify { taskRepository.findByPriority(TaskPriority.HIGH) }
+    }
+
+    @Test
     fun `should create task`() {
         val request = CreateTaskRequest(title = "New Task", description = "New Description", status = TaskStatus.TODO)
         val taskSlot = slot<Task>()
@@ -98,6 +113,21 @@ class TaskServiceTest {
     }
 
     @Test
+    fun `should create task with priority`() {
+        val request = CreateTaskRequest(title = "High Task", priority = TaskPriority.HIGH)
+        val taskSlot = slot<Task>()
+        every { taskRepository.save(capture(taskSlot)) } answers {
+            createTask(title = "High Task", priority = TaskPriority.HIGH)
+        }
+
+        val result = taskService.create(request)
+
+        assertThat(taskSlot.captured.priority).isEqualTo(TaskPriority.HIGH)
+        assertThat(result.priority).isEqualTo(TaskPriority.HIGH)
+        verify { taskRepository.save(any()) }
+    }
+
+    @Test
     fun `should update existing task`() {
         val existing = createTask()
         val request = UpdateTaskRequest(title = "Updated", description = "Updated Desc", status = TaskStatus.DONE)
@@ -110,6 +140,40 @@ class TaskServiceTest {
 
         assertThat(result.title).isEqualTo("Updated")
         assertThat(result.status).isEqualTo(TaskStatus.DONE)
+        verify { taskRepository.findById(taskId) }
+        verify { taskRepository.save(any()) }
+    }
+
+    @Test
+    fun `should update task priority`() {
+        val existing = createTask()
+        val request = UpdateTaskRequest(title = "Updated", status = TaskStatus.DONE, priority = TaskPriority.LOW)
+        val taskSlot = slot<Task>()
+        every { taskRepository.findById(taskId) } returns Optional.of(existing)
+        every { taskRepository.save(capture(taskSlot)) } answers {
+            createTask(title = "Updated", status = TaskStatus.DONE, priority = TaskPriority.LOW)
+        }
+
+        val result = taskService.update(taskId, request)
+
+        assertThat(taskSlot.captured.priority).isEqualTo(TaskPriority.LOW)
+        assertThat(result.priority).isEqualTo(TaskPriority.LOW)
+        verify { taskRepository.findById(taskId) }
+        verify { taskRepository.save(any()) }
+    }
+
+    @Test
+    fun `should clear task priority when updated with null priority`() {
+        val existing = createTask(priority = TaskPriority.HIGH)
+        val request = UpdateTaskRequest(title = "Updated", status = TaskStatus.TODO, priority = null)
+        every { taskRepository.findById(taskId) } returns Optional.of(existing)
+        every { taskRepository.save(any()) } answers {
+            createTask(title = "Updated", priority = null)
+        }
+
+        val result = taskService.update(taskId, request)
+
+        assertThat(result.priority).isNull()
         verify { taskRepository.findById(taskId) }
         verify { taskRepository.save(any()) }
     }

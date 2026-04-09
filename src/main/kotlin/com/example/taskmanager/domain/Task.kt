@@ -32,6 +32,9 @@ class Task(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: TaskStatus = TaskStatus.TODO,
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    var priority: TaskPriority? = null,
     @CreatedDate
     @Column(nullable = false, updatable = false)
     var createdAt: LocalDateTime? = null,
