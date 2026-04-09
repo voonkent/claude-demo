@@ -148,13 +148,15 @@ class TaskServiceTest {
     fun `should update task priority`() {
         val existing = createTask()
         val request = UpdateTaskRequest(title = "Updated", status = TaskStatus.DONE, priority = TaskPriority.LOW)
+        val taskSlot = slot<Task>()
         every { taskRepository.findById(taskId) } returns Optional.of(existing)
-        every { taskRepository.save(any()) } answers {
+        every { taskRepository.save(capture(taskSlot)) } answers {
             createTask(title = "Updated", status = TaskStatus.DONE, priority = TaskPriority.LOW)
         }
 
         val result = taskService.update(taskId, request)
 
+        assertThat(taskSlot.captured.priority).isEqualTo(TaskPriority.LOW)
         assertThat(result.priority).isEqualTo(TaskPriority.LOW)
         verify { taskRepository.findById(taskId) }
         verify { taskRepository.save(any()) }

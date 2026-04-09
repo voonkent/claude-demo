@@ -132,6 +132,24 @@ class TaskControllerTest {
     }
 
     @Test
+    fun `should create task with priority and return 201`() {
+        val request = CreateTaskRequest(title = "High Priority Task", priority = TaskPriority.HIGH)
+        every { taskService.create(any()) } returns
+            createTask(title = "High Priority Task", priority = TaskPriority.HIGH)
+
+        mockMvc
+            .perform(
+                post("/api/tasks")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)),
+            ).andExpect(status().isCreated)
+            .andExpect(jsonPath("$.title").value("High Priority Task"))
+            .andExpect(jsonPath("$.priority").value("HIGH"))
+
+        verify { taskService.create(any()) }
+    }
+
+    @Test
     fun `should update task`() {
         val request = UpdateTaskRequest(title = "Updated", description = "Updated Desc", status = TaskStatus.DONE)
         every { taskService.update(taskId, any()) } returns
