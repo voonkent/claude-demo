@@ -59,7 +59,7 @@ Schema migration is handled automatically by `ddl-auto: update`. Hibernate adds 
 | `GET /api/tasks?priority=HIGH` | Returns only tasks with priority = HIGH |
 | `GET /api/tasks?priority=URGENT` | `400 Bad Request` (invalid enum value) |
 
-Spring's `MethodArgumentTypeMismatchException` handler produces the 400 automatically — no custom error handling needed.
+Spring throws `MethodArgumentTypeMismatchException` for invalid enum values. A custom `@ExceptionHandler` in `GlobalExceptionHandler` is required to return the project's structured `{"error": "Bad Request", "message": "..."}` JSON body — Spring's default handler returns 400 but without a structured body.
 
 ### `GET /api/tasks/{id}` and `DELETE /api/tasks/{id}` — Unchanged
 
