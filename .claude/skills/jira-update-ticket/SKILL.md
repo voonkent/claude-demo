@@ -1,6 +1,7 @@
 ---
 name: jira-update-ticket
 description: Update a Jira ticket -- transition status, update fields, or add comments. Use when the user wants to modify a Jira issue.
+disable-model-invocation: true
 ---
 
 Update a Jira Cloud ticket by performing status transitions, field updates, or adding comments.

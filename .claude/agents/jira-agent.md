@@ -33,7 +33,7 @@ description: |
   assistant: "I'll use the jira-ticket-agent to search for matching tickets."
   </example>
 
-model: sonnet
+model: inherit
 color: blue
 tools: ["Read", "Grep", "Glob", "Bash"]
 ---
