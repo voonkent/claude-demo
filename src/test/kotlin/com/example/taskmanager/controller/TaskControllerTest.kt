@@ -69,6 +69,8 @@ class TaskControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(2))
             .andExpect(jsonPath("$[0].title").value("Test Task"))
+
+        verify { taskService.findAll(null) }
     }
 
     @Test
@@ -81,6 +83,8 @@ class TaskControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].priority").value("HIGH"))
+
+        verify { taskService.findAll(TaskPriority.HIGH) }
     }
 
     @Test
@@ -88,6 +92,7 @@ class TaskControllerTest {
         mockMvc
             .perform(get("/api/tasks").param("priority", "URGENT"))
             .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.error").value("Bad Request"))
     }
 
     @Test
